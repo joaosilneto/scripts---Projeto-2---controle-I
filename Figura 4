@@ -1,0 +1,58 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição dos Sistemas
+
+% Sistema original de 3ª ordem em malha aberta (G1)
+num1 = 1.0442e12;
+den1_poly1 = [1, 12.1951];
+den1_poly2 = [1, 5.1894, 31.64];
+den1 = conv(den1_poly1, den1_poly2);
+G1 = tf(num1, den1);
+
+% Sistema original reduzido para 2ª ordem em malha aberta (G2)
+num2 = 8.56e10;
+den2 = [1, 5.1894, 31.64];
+G2 = tf(num2, den2);
+
+
+disp('Sistema Original (3ª Ordem) G1(s):');
+disp(G1);
+disp('Sistema Reduzido (2ª Ordem) G2(s):');
+disp(G2);
+
+
+%% 2. Simulação e Geração do Gráfico Comparativo
+
+% Parâmetros da simulação
+amplitude_degrau = 1.8;
+tempo_final = 5; % Simula por 5 segundos
+t_sim = 0:0.01:tempo_final;
+
+% Calculando a resposta ao degrau para cada sistema
+y1 = step(G1, t_sim);
+y1_escalado = y1 * amplitude_degrau;
+
+y2 = step(G2, t_sim);
+y2_escalado = y2 * amplitude_degrau;
+
+
+%% 3. Plotando do Gráfico
+figure;
+hold on; % 
+
+
+plot(t_sim, y1_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Original (3ª Ordem)');
+
+plot(t_sim, y2_escalado, 'r--', 'LineWidth', 2, 'DisplayName', 'Reduzido (2ª Ordem)');
+
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau');
+
+
+title('Comparativo da Resposta ao Degrau: Sistema Original vs. Reduzido');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+grid on;
+legend('show', 'Location', 'best');
+hold off;
