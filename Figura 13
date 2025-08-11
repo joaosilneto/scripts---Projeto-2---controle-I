@@ -10,7 +10,7 @@ num2 = 8.56e10;
 den2 = [1, 5.1894, 31.64];
 G2 = tf(num2, den2);
 
-% Ganhos FINAIS AJUSTADOS 
+% Ganhos 
 Kp_desejado = 334;
 Ki_desejado = 1836;
 Kd_desejado = 42.81;
