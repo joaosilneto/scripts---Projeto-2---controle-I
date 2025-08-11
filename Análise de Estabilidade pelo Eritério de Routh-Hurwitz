@@ -1,0 +1,76 @@
+
+clc;
+clear;
+close all;
+
+%% Análise de Estabilidade via Critério de Routh-Hurwitz
+
+% 1. Definição da Equação Característica Simbólica
+
+% Declara 's' e 'K_prime' como variáveis simbólicas
+syms s K_prime;
+
+% Coeficientes do polinômio do denominador da planta
+a2 = 1;
+a1 = 5.1894;
+a0_base = 31.64;
+
+% Montando a equação característica: s^2 + a1*s + (a0_base + K_prime) = 0
+char_poly = s^2 + a1*s + (a0_base + K_prime);
+
+fprintf('--- 1. Equação Característica do Sistema ---\n');
+fprintf('A equação característica é 1 + K'' * G_norm(s) = 0, resultando em:\n');
+disp(char_poly == 0);
+
+
+%% 2. Construção da Tabela de Routh-Hurwitz
+
+fprintf('\n--- 2. Construção da Tabela de Routh-Hurwitz ---\n');
+
+% Extraindo os coeficientes do polinômio simbólico
+coeffs = coeffs(char_poly, s);
+a2_val = coeffs(3); % Coeficiente de s^2
+a1_val = coeffs(2); % Coeficiente de s^1
+a0_val = coeffs(1); % Coeficiente de s^0 (constante)
+
+% Montando a tabela
+routh_table = sym(zeros(3, 2)); % Cria uma tabela simbólica 3x2
+
+% Preenchendo as duas primeiras linhas com os coeficientes
+routh_table(1, :) = [a2_val, a0_val];
+routh_table(2, :) = [a1_val, 0];
+
+% Calculando o elemento b1 da terceira linha
+b1 = -det([routh_table(1,1), routh_table(1,2); routh_table(2,1), routh_table(2,2)]) / routh_table(2,1);
+routh_table(3, 1) = simplify(b1);
+
+fprintf('A Tabela de Routh para o sistema é:\n');
+disp('s^2 | a2         a0');
+disp('s^1 | a1         0');
+disp('s^0 | b1         0');
+fprintf('\nCom os valores:\n');
+pretty(routh_table);
+
+
+%% 3. Condição de Estabilidade e Conclusão
+
+fprintf('\n--- 3. Condição de Estabilidade e Conclusão ---\n');
+
+% A condição de estabilidade é que todos os elementos da primeira coluna
+% sejam positivos.
+first_column = routh_table(:, 1);
+
+fprintf('Os elementos da primeira coluna são:\n');
+disp(first_column);
+
+% Resolve a inequação para o termo dependente de K'
+stability_condition = solve(first_column(3) > 0, K_prime);
+
+fprintf('A condição para estabilidade (b1 > 0) resulta em:\n');
+disp(stability_condition);
+
+fprintf('\nConclusão:\n');
+fprintf('O sistema é estável para K'' > -31.64.\n');
+fprintf('Como o ganho do controlador K deve ser positivo (K > 0), o ganho total K''\n');
+fprintf('será sempre um número positivo muito grande, satisfazendo a condição de estabilidade.\n');
+fprintf('Portanto, o sistema é estável para todos os ganhos K fisicamente realizáveis.\n');
