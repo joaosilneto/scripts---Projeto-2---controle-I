@@ -1,0 +1,51 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta e do Compensador de Avanço de Fase
+
+% Planta original (parte dinâmica, sem o ganho)
+G_planta = tf(1, [1, 5.1894, 31.64]);
+
+% Compensador de Avanço de Fase projetado para Ts = 1s
+z_lead = 2.595;
+p_lead = 15.37;
+Gc_lead = tf([1, z_lead], [1, p_lead]);
+
+% Função de Transferência de Malha Aberta a ser plotada
+L = Gc_lead * G_planta;
+
+% Exibe as funções de transferência para verificação
+disp('Planta G(s):');
+disp(G_planta);
+disp('Compensador de Avanço Gc(s):');
+disp(Gc_lead);
+disp('Função de Malha Aberta para o LGR, L(s):');
+disp(L);
+
+%% 2. Geração do Gráfico do LGR
+
+figure;
+hold on;
+rlocus(L);
+
+
+
+% Adiciona um título descritivo
+title('LGR do Sistema com Compensador de Avanço de Fase');
+
+% Adiciona labels aos eixos
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+
+% Adiciona uma grade para facilitar a leitura
+grid on;
+
+% Adiciona a reta de amortecimento para zeta = 0.591 (Overshoot de 10%)
+zeta_desejado = 0.591;
+sgrid(zeta_desejado, []); 
+
+% Adiciona uma legenda para explicar as linhas
+legend('Trajetórias do LGR', ['Linha de Amortecimento ζ = ', num2str(zeta_desejado)]);
+
+hold off;
