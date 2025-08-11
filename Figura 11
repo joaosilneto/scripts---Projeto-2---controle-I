@@ -1,0 +1,57 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição do Sistema Compensado em Malha Aberta
+
+% Numerador
+num_factors = conv([1, 0.4584], [1, 2.595]);
+NUM = 142.77 * num_factors;
+
+% Denominador
+den1_factor = [1, 0.001];
+den2_factors = conv([1, 15.75], [1, 5.1894, 31.64]);
+DEN = conv(den1_factor, den2_factors);
+
+% Função de Transferência de Malha Aberta
+L = tf(NUM, DEN);
+
+%% 2. Fechamento da Malha
+
+T = feedback(L, 1);
+
+
+disp('Sistema de Malha Aberta Compensado L(s):');
+disp(L);
+disp('Sistema de Malha Fechada Compensado T(s):');
+disp(T);
+
+%% 3. Simulação e Geração do Gráfico
+amplitude_degrau = 1.8;
+% Tempo de simulação longo devido ao polo lento do compensador
+tempo_final = 500; 
+t_sim = 0:0.5:tempo_final;
+
+
+[y, t] = step(T, t_sim);
+y_escalado = y * amplitude_degrau;
+
+
+figure;
+hold on;
+
+
+plot(t, y_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Resposta em Malha Fechada');
+
+
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau (1.8)');
+
+% Configuração do Gráfico
+title('Resposta ao Degrau do Sistema Compensado');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+grid on;
+legend('show', 'Location', 'best');
+ylim([0, amplitude_degrau * 1.2]);
+hold off;
