@@ -1,0 +1,85 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta e do Compensador
+
+% Planta original (G2)
+num2 = 8.56e10;
+den2 = [1, 5.1894, 31.64];
+G2 = tf(num2, den2);
+
+% Compensador de avanço de fase projetado (Gc)
+% Gc(s) = Kc * (s+z)/(s+p)
+z_c = 2.595;
+p_c = 15.37;
+Kc = 4.09e-10; % Ganho de atenuação calculado para o compensador
+
+Gc = tf(Kc * [1, z_c], [1, p_c]);
+
+%% 2. Montagem e Fechamento da Malha
+
+% Função de transferência de malha aberta COMPENSADA
+L = Gc * G2;
+
+% Fecha a malha do sistema (realimentação unitária)
+T = feedback(L, 1);
+
+
+disp('Compensador Gc(s):');
+disp(Gc);
+disp('Sistema de Malha Aberta Compensado L(s):');
+disp(L);
+disp('Sistema de Malha Fechada Compensado T(s):');
+disp(T);
+
+
+
+
+% Parâmetros da simulação
+amplitude_degrau = 1.8;
+tempo_final = 5; % Simula por 5 segundos para ver a resposta completa
+t_sim = 0:0.01:tempo_final;
+
+% Calcula a resposta ao degrau do sistema em malha fechada
+% A função step por padrão usa um degrau unitário, então escalamos a saída
+[y, t] = step(T, t_sim);
+y_escalado = y * amplitude_degrau;
+
+
+
+% Calcula as características da resposta ao degrau unitário
+% Usamos 'y' e 't' (não escalados) para obter os percentuais corretos
+info = stepinfo(y, t, 'SettlingTimeThreshold', 0.02); % Critério de 2%
+
+overshoot_real = info.Overshoot;
+ts_real = info.SettlingTime;
+
+% Exibe os resultados do desempenho
+fprintf('\n--- Análise de Desempenho do Sistema Compensado ---\n');
+fprintf('Overshoot Desejado: ~10%%\n');
+fprintf('Overshoot Real: %.2f%%\n\n', overshoot_real);
+fprintf('Tempo de Acomodação (2%%) Desejado: 1.0s\n');
+fprintf('Tempo de Acomodação (2%%) Real: %.4fs\n', ts_real);
+fprintf('--------------------------------------------------\n');
+
+
+
+figure;
+hold on;
+
+% Plota a resposta ao degrau escalada
+plot(t, y_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Resposta em Malha Fechada');
+
+% Adiciona a linha de referência do degrau de entrada
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau (1.8)');
+
+% Configuração do Gráfico
+title('Resposta ao Degrau do Sistema Compensado em Malha Fechada');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+grid on;
+legend('show', 'Location', 'southeast');
+ylim([0, amplitude_degrau * 1.2]); % Ajusta o eixo Y para uma boa visualização
+hold off;
