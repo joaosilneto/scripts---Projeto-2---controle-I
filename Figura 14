@@ -1,0 +1,82 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta REAL e dos Ganhos do PID AJUSTADOS
+
+num2 = 8.56e10;
+den2 = [1, 5.1894, 31.64];
+G2 = tf(num2, den2);
+
+% --- AJUSTE FINO FINAL DOS GANHOS ---
+Kp_desejado = 450;
+Ki_desejado = 1836;
+Kd_desejado = 35;
+
+% Ganho da planta
+Ganho_Planta = 8.56e10;
+
+% Ganhos REAIS do controlador (escalonados)
+Kp = Kp_desejado / Ganho_Planta;
+Ki = Ki_desejado / Ganho_Planta;
+Kd = Kd_desejado / Ganho_Planta;
+
+% Criando a função de transferência do controlador PID
+Gc_pid = tf([Kd, Kp, Ki], [1, 0]);
+
+%% 2. Montagem e Fechamento da Malha
+L = Gc_pid * G2;
+T = feedback(L, 1);
+
+
+amplitude_degrau = 1.8;
+tempo_final = 5;
+t_sim = 0:0.01:tempo_final;
+[y, t] = step(T, t_sim);
+y_escalado = y * amplitude_degrau;
+
+
+info = stepinfo(y_escalado, t, 'SettlingTimeThreshold', 0.02);
+fprintf('\n--- Análise de Desempenho do Sistema com AJUSTE FINO ---\n');
+fprintf('Overshoot Real: %.2f%%\n', info.Overshoot);
+fprintf('Tempo de Acomodação (2%%) Real (Técnico): %.4fs\n', info.SettlingTime);
+fprintf('Tempo de Pico Real: %.4fs\n', info.PeakTime);
+fprintf('Valor de Pico Real: %.4f\n', info.Peak);
+fprintf('Valor Final Real: %.4f\n', y_escalado(end));
+fprintf('--------------------------------------------------\n');
+
+
+figure;
+hold on;
+plot(t, y_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Resposta com PID Ajustado');
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau (1.8)');
+title('Resposta ao Degrau com Projeto PID Ajustado');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+grid on;
+ylim([0, amplitude_degrau * 1.2]);
+
+
+
+
+% Extrai os valores da estrutura 'info' para as anotações
+overshoot_val = info.Overshoot;
+tp_val = info.PeakTime;
+peak_val = info.Peak;
+ts_val_visual = 1.0; % Tempo de assentamento visual
+
+% Adiciona uma linha vertical vermelha tracejada no tempo de pico
+xline(tp_val, 'r--', 'LineWidth', 1); % <-- ADICIONADO AQUI
+% Escreve o valor do pico e o overshoot
+text_peak = sprintf('Pico: %.2f (Overshoot: %.2f%%)', peak_val, overshoot_val);
+text(tp_val + 0.1, peak_val, text_peak, 'FontSize', 10, 'Color', 'k');
+
+% Adiciona uma linha vertical vermelha tracejada em t = 1.0s
+xline(ts_val_visual, 'r--', 'LineWidth', 1);
+text_ts = sprintf('Tempo de Assentamento: ~%.2fs', ts_val_visual);
+text(ts_val_visual + 0.1, 0.2, text_ts, 'FontSize', 10, 'Color', 'r');
+
+
+
+legend('show', 'Location', 'best');
+hold off;
