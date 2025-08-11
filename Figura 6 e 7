@@ -1,0 +1,41 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição do Sistema Reduzido
+
+% Sistema original reduzido de 2ª ordem em malha aberta (G2)
+num2 = 8.56e10;
+den2 = [1, 5.1894, 31.64];
+G2 = tf(num2, den2);
+
+
+disp('Sistema Reduzido (2ª Ordem) G2(s):');
+disp(G2);
+
+%% 2. Geração do Gráfico do LGR Completo
+
+figure;
+hold on; 
+
+% Plota o LGR convencional (para K > 0) em azul
+rlocus(G2, 'b');
+
+% Plota o LGR complementar (para K < 0) em vermelho
+rlocus(-G2, 'r');
+
+% Adicionando a linha de amortecimento para zeta = 0.591
+zeta_desejado = 0.591;
+sgrid(zeta_desejado, []);
+
+%% 3. Configuração do Gráfico
+
+title('LGR Completo do Sistema Reduzido (K > 0 e K < 0)');
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+grid on;
+
+
+legend('Trajetórias para K > 0', 'Trajetórias para K < 0', ['Linha de Amortecimento ζ = ', num2str(zeta_desejado)]);
+
+hold off;
