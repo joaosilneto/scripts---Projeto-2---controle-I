@@ -1,0 +1,81 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição dos Pontos de Interesse
+
+% Polos do sistema original G(s)
+p1 = -2.595 + 4.99j;
+p2 = -2.595 - 4.99j;
+
+% Zero do compensador de avanço (Zc)
+Zc = -2.595;
+
+% Ponto de malha fechada desejado (Sd)
+Sd = -4 + 5.46j;
+
+
+%% 2. Criação do Gráfico
+
+figure;
+hold on;
+
+% Plota os polos (marcados com 'x' vermelhos)
+plot(real(p1), imag(p1), 'rx', 'MarkerSize', 12, 'LineWidth', 2);
+plot(real(p2), imag(p2), 'rx', 'MarkerSize', 12, 'LineWidth', 2);
+
+% Plota o zero (marcado com 'o' azul)
+plot(real(Zc), imag(Zc), 'bo', 'MarkerSize', 12, 'LineWidth', 2);
+
+% Plota o ponto desejado Sd (marcado com um losango 'd' verde)
+plot(real(Sd), imag(Sd), 'gd', 'MarkerSize', 12, 'LineWidth', 2, 'MarkerFaceColor', 'g');
+
+
+%% 3. Desenhando dos Vetores (Setas)
+
+% Vetor do polo p1 até Sd
+arrow_p1 = Sd - p1;
+quiver(real(p1), imag(p1), real(arrow_p1), imag(arrow_p1), 0, 'k--', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
+
+% Vetor do polo p2 até Sd
+arrow_p2 = Sd - p2;
+quiver(real(p2), imag(p2), real(arrow_p2), imag(arrow_p2), 0, 'k--', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
+
+% Vetor do zero Zc até Sd
+arrow_Zc = Sd - Zc;
+quiver(real(Zc), imag(Zc), real(arrow_Zc), imag(arrow_Zc), 0, 'b--', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
+
+
+%% 4. Cálculo e Anotação dos Ângulos
+
+% angle() retorna em radianos, então convertemos para graus com *(180/pi)
+angle_p1 = angle(arrow_p1) * (180/pi);
+angle_p2 = angle(arrow_p2) * (180/pi);
+angle_Zc = angle(arrow_Zc) * (180/pi);
+
+% Posição dos textos de ângulo recalculada para ficar no meio dos vetores
+mid_p1 = (p1 + Sd) / 2;
+mid_p2 = (p2 + Sd) / 2;
+mid_Zc = (Zc + Sd) / 2;
+
+text(real(mid_p1), imag(mid_p1) + 0.3, sprintf('θ_{p1} = %.1f°', angle_p1), 'FontSize', 11, 'Color', 'k', 'HorizontalAlignment', 'center');
+text(real(mid_p2) - 1.5, imag(mid_p2) - 0.3, sprintf('θ_{p2} = %.1f°', angle_p2), 'FontSize', 11, 'Color', 'k');
+text(real(mid_Zc) - 1.5, imag(mid_Zc), sprintf('θ_{Zc} = %.1f°', angle_Zc), 'FontSize', 11, 'Color', 'b');
+
+
+%% 5. Configuração Final do Gráfico
+
+title('Ilustração dos Ângulos para a Condição de Ângulo do LGR');
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+grid on;
+axis equal; % Mantém a proporção correta para os ângulos
+
+
+xlim([-16, 2]);
+ylim([-6, 6]);
+
+
+legend('Polos do Sistema', '', 'Zero do Compensador', 'Ponto Desejado (Sd)', 'Location', 'northwest');
+
+hold off;K fisicamente realizáveis.\n');
