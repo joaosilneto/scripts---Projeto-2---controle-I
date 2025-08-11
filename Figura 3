@@ -1,0 +1,35 @@
+clc;
+clear;
+close all;
+
+%% 1. Definição da Função de Transferência G(s)
+
+% Numerador da função
+num = 1.0442e12;
+
+% Denominador da função
+% (s + 12.1951) e (s^2 + 5.1894s + 31.64)
+den_poly1 = [1, 12.1951];
+den_poly2 = [1, 5.1894, 31.64];
+den = conv(den_poly1, den_poly2);
+
+%função de transferência
+G = tf(num, den);
+
+
+disp('Função de Transferência G(s):');
+disp(G);
+
+%% 2. Geração do Gráfico do LGR
+
+figure; 
+hold on;
+
+rlocus(G);
+
+title('Lugar Geométrico das Raízes (LGR) do Sistema');
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+grid on;
+
+hold off;
