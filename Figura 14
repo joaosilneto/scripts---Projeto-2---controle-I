@@ -1,0 +1,48 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta e do Controlador PID
+
+% --- Ganhos FINAIS AJUSTADOS (usados para definir a dinâmica do controlador) ---
+Kp_desejado = 450;
+Ki_desejado = 1836;
+Kd_desejado = 35;
+
+% Planta original (parte dinâmica, sem o ganho)
+G_planta = tf(1, [1, 5.1894, 31.64]);
+
+% Controlador PID (parte dinâmica, sem o ganho K final)
+% Gc(s) = (Kd*s^2 + Kp*s + Ki) / s
+Gc_pid_norm = tf([Kd_desejado, Kp_desejado, Ki_desejado], [1, 0]);
+
+% Função de Transferência de Malha Aberta a ser plotada
+% O LGR analisa a dinâmica do sistema.
+L = Gc_pid_norm * G_planta;
+
+
+disp('Função de Malha Aberta para o LGR (PID Ajustado + Planta):');
+disp(L);
+
+%% 2. Geração do Gráfico do LGR
+
+figure;
+
+rlocus(L);
+
+title('LGR do Sistema Compensado com Controlador PID Ajustado');
+
+
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+
+
+grid on;
+
+
+zeta_desejado = 0.591;
+sgrid(zeta_desejado, []); 
+
+
+legend('Trajetórias do LGR', ['Linha de Amortecimento ζ = ', num2str(zeta_desejado)]);
