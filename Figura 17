@@ -3,27 +3,27 @@ clc;
 clear;
 close all;
 
-%% 1. Definição da Planta e dos Ganhos K
+%% 1. Definição da Planta e da Faixa de Ganhos K
 
 % Planta original G(s)
 num_G = 8.56e10;
 den_G = [1, 5.1894, 31.64];
 G = tf(num_G, den_G);
 
-% Define três valores de K para comparar (baixo, médio, alto)
-% O valor médio é o que calculamos para 7% de erro
-K_vals = [1e-9, 4.91e-9, 9e-9]; 
 
+K_vals = [1e-9, 5e-9, 1e-8, 5e-8, 1e-7, 5e-7]; 
 
+% Parâmetros da simulação
 amplitude_degrau = 1.8;
-tempo_final = 50;
+tempo_final = 50; % Tempo longo para garantir que todas as curvas estabilizem
 t_sim = 0:0.1:tempo_final;
 
+%% 2. Simulação e Geração do Gráfico
 
 figure;
 hold on;
 grid on;
-title('Comportamento da Resposta ao Degrau para Diferentes Ganhos K');
+title('Comparativo da Resposta ao Degrau para uma Faixa de Ganhos K');
 xlabel('Tempo (segundos)');
 ylabel('Amplitude de Saída');
 
@@ -35,19 +35,19 @@ legend_entries = {'Entrada Degrau'};
 for i = 1:length(K_vals)
     K = K_vals(i);
     
+    % Cria o sistema em malha fechada para o ganho K atual
     T = feedback(K * G, 1);
-    
     
     y = step(T, t_sim) * amplitude_degrau;
     
- 
+   
     plot(t_sim, y, 'LineWidth', 2);
     
 
-    legend_entries{i+1} = sprintf('K = %.2e', K);
+    legend_entries{i+1} = sprintf('K = %.1e', K);
 end
 
 
 legend(legend_entries, 'Location', 'best');
-ylim([0, amplitude degrau * 2]); % Aumenta o limite do eixo Y para ver o overshoot
+% ylim removido para que o gráfico se ajuste automaticamente aos grandes overshoots
 hold off;
