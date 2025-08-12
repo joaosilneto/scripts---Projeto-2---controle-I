@@ -1,0 +1,56 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta e do Ganho K para Erro de 7%
+
+% Planta original G2(s)
+num2 = 8.56e10;
+den2 = [1, 5.1894, 31.64];
+G2 = tf(num2, den2);
+
+% Ganho K calculado para Ess <= 7% (do item 1e)
+K = 4.91e-9;
+
+% Função de malha aberta com o ganho K
+L = K * G2;
+
+
+T = feedback(L, 1);
+
+
+amplitude_degrau = 1.8;
+tempo_final = 50; % Simula por um tempo mais longo para garantir a estabilização
+t_sim = 0:0.1:tempo_final;
+
+
+[y, t] = step(T, t_sim);
+y_escalado = y * amplitude_degrau;
+
+
+valor_final = y_escalado(end);
+erro_ss = amplitude_degrau - valor_final;
+erro_percentual = (erro_ss / amplitude_degrau) * 100;
+fprintf('Erro de Regime Permanente Real: %.2f%%\n', erro_percentual);
+
+
+figure;
+hold on;
+
+
+plot(t, y_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Resposta em Malha Fechada');
+
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau (1.8)');
+
+valor_limite_erro = amplitude_degrau * (1 - 0.07);
+yline(valor_limite_erro, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Valor Final (Erro de 7%)');
+
+
+title('Resposta ao Degrau com Ganho K para Erro de 7%');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+grid on;
+legend('show', 'Location', 'best');
+ylim([0, amplitude_degrau * 1.5]); % Ajusta o eixo Y para ver o overshoot
+hold off;
