@@ -1,0 +1,53 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição da Planta e dos Ganhos K
+
+% Planta original G(s)
+num_G = 8.56e10;
+den_G = [1, 5.1894, 31.64];
+G = tf(num_G, den_G);
+
+% Define três valores de K para comparar (baixo, médio, alto)
+% O valor médio é o que calculamos para 7% de erro
+K_vals = [1e-9, 4.91e-9, 9e-9]; 
+
+
+amplitude_degrau = 1.8;
+tempo_final = 50;
+t_sim = 0:0.1:tempo_final;
+
+
+figure;
+hold on;
+grid on;
+title('Comportamento da Resposta ao Degrau para Diferentes Ganhos K');
+xlabel('Tempo (segundos)');
+ylabel('Amplitude de Saída');
+
+yline(amplitude_degrau, 'k:', 'LineWidth', 1.5);
+
+legend_entries = {'Entrada Degrau'};
+
+% Loop para simular e plotar para cada valor de K
+for i = 1:length(K_vals)
+    K = K_vals(i);
+    
+    T = feedback(K * G, 1);
+    
+    
+    y = step(T, t_sim) * amplitude_degrau;
+    
+ 
+    plot(t_sim, y, 'LineWidth', 2);
+    
+
+    legend_entries{i+1} = sprintf('K = %.2e', K);
+end
+
+
+legend(legend_entries, 'Location', 'best');
+ylim([0, amplitude degrau * 2]); % Aumenta o limite do eixo Y para ver o overshoot
+hold off;
