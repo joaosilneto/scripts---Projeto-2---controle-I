@@ -1,0 +1,84 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição de todos os Polos e Zeros
+systems = {};
+% (As definições dos 7 sistemas permanecem as mesmas de antes)
+systems{1}.poles = [-2.5957+5j, -2.5957-5j];
+systems{1}.zeros = [];
+systems{1}.name  = '1. Reduzido (MA)';
+systems{1}.color = [0, 0.4470, 0.7410];
+
+systems{2}.poles = [-2.595+5j, -2.595-5j, -15.37];
+systems{2}.zeros = [-2.595];
+systems{2}.name  = '2. Avanço (MA)';
+systems{2}.color = [0.8500, 0.3250, 0.0980];
+
+systems{3}.poles = [-4+5.47j, -4-5.47j, -12.56];
+systems{3}.zeros = [-2.595];
+systems{3}.name  = '3. Avanço (MF)';
+systems{3}.color = [0.9290, 0.6940, 0.1250];
+
+systems{4}.poles = [-2.595+5j, -2.595-5j, -15.37]; 
+systems{4}.zeros = [-0.4684, -2.595];
+systems{4}.name  = '4. Avanço-Atraso (MA)';
+systems{4}.color = [0.4940, 0.1840, 0.5560];
+
+systems{5}.poles = [-15.1117, -2.8237+7.2196j, -2.8237-7.2196j, -0.1908]; 
+systems{5}.zeros = [-2.6040, -0.4527];
+systems{5}.name  = '5. Avanço-Atraso (MF)';
+systems{5}.color = [0.4660, 0.6740, 0.1880];
+
+systems{6}.poles = [-2.595+5j, -2.595-5j, 0];
+systems{6}.zeros = [-6.4286+3.336j, -6.4286-3.336j];
+systems{6}.name  = '6. PID (MA)';
+systems{6}.color = [0.3010, 0.7450, 0.9330];
+
+systems{7}.poles = [-8.965+1.4524j, -8.965-1.4524j, -22.26];
+systems{7}.zeros = [-6.4286+3.336j, -6.4286-3.336j];
+systems{7}.name  = '7. PID (MF) - PROJETO FINAL';
+systems{7}.color = [0.6350, 0.0780, 0.1840];
+
+
+%% 2. Geração do Gráfico Comparativo Melhorado
+
+figure('Position', [100, 100, 1000, 800]);
+hold on;
+grid on;
+legend_handles = [];
+legend_labels = {};
+
+for i = 1:length(systems)
+    % <-- MUDANÇA AQUI: Condição especial para o primeiro sistema
+    if i == 1 % Se for o Sistema Reduzido (MA)
+        % Plota os polos com um marcador quadrado (s) e maior (15)
+        p_handle = plot(real(systems{i}.poles), imag(systems{i}.poles), 's', ...
+            'Color', systems{i}.color, 'MarkerSize', 15, 'LineWidth', 3);
+    else
+        % Plota os polos dos outros sistemas com 'x'
+        p_handle = plot(real(systems{i}.poles), imag(systems{i}.poles), 'x', ...
+            'Color', systems{i}.color, 'MarkerSize', 10, 'LineWidth', 2);
+    end
+    
+    % Plota os zeros ('o')
+    plot(real(systems{i}.zeros), imag(systems{i}.zeros), 'o', ...
+        'Color', systems{i}.color, 'MarkerSize', 10, 'LineWidth', 2);
+    
+    legend_handles(end+1) = p_handle;
+    legend_labels{end+1} = systems{i}.name;
+end
+
+%% 3. Configuração Final do Gráfico
+title('Mapa Comparativo de Polos e Zeros de Todos os Sistemas');
+xlabel('Eixo Real');
+ylabel('Eixo Imaginário');
+legend(legend_handles, legend_labels, 'Location', 'best');
+ax = gca;
+ax.XAxisLocation = 'origin';
+ax.YAxisLocation = 'origin';
+axis equal;
+xlim([-40, 5]);
+ylim([-15, 15]);
+hold off;
