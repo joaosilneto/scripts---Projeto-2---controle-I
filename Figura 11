@@ -1,4 +1,5 @@
 
+
 clc;
 clear;
 close all;
@@ -22,36 +23,49 @@ L = tf(NUM, DEN);
 T = feedback(L, 1);
 
 
-disp('Sistema de Malha Aberta Compensado L(s):');
-disp(L);
-disp('Sistema de Malha Fechada Compensado T(s):');
-disp(T);
-
-%% 3. Simulação e Geração do Gráfico
 amplitude_degrau = 1.8;
-% Tempo de simulação longo devido ao polo lento do compensador
 tempo_final = 500; 
 t_sim = 0:0.5:tempo_final;
 
-
 [y, t] = step(T, t_sim);
 y_escalado = y * amplitude_degrau;
+
+valor_final = y_escalado(end);
+erro_ss = amplitude_degrau - valor_final;
+erro_percentual = (erro_ss / amplitude_degrau) * 100;
+
+fprintf('Valor final de estabilização: %.4f\n', valor_final);
+fprintf('Erro de Regime Permanente Real: %.2f%%\n', erro_percentual);
 
 
 figure;
 hold on;
 
-
 plot(t, y_escalado, 'b-', 'LineWidth', 2, 'DisplayName', 'Resposta em Malha Fechada');
-
-
 yline(amplitude_degrau, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Entrada Degrau (1.8)');
+yline(valor_final, 'r--', 'LineWidth', 1.5, 'DisplayName', ['Valor Final (' num2str(valor_final, '%.3f') ')']);
 
-% Configuração do Gráfico
+
 title('Resposta ao Degrau do Sistema Compensado');
 xlabel('Tempo (segundos)');
 ylabel('Amplitude de Saída');
 grid on;
-legend('show', 'Location', 'best');
 ylim([0, amplitude_degrau * 1.2]);
+
+
+
+
+texto_erro = { ...
+    sprintf('Valor Final: %.3f', valor_final), ...
+    sprintf('Erro Estacionário: %.2f%%', erro_percentual) ...
+};
+
+% Adiciona a caixa de texto em uma posição central do gráfico
+% As coordenadas (tempo_final*0.5, amplitude_degrau*0.5) colocam o texto no meio
+text(tempo_final*0.5, amplitude_degrau*0.5, texto_erro, ...
+    'FontSize', 10, 'EdgeColor', 'black', 'BackgroundColor', 'white');
+
+
+% Finaliza o gráfico
+legend('show', 'Location', 'best');
 hold off;
