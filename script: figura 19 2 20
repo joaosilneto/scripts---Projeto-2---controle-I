@@ -1,0 +1,100 @@
+
+clc;
+clear;
+close all;
+
+%% 1. Definição dos Parâmetros Nominais
+num_G_nom = 8.56e10;
+a1_nom = 5.1894;
+a0_nom = 31.64;
+K_nom = 4.91e-9;
+
+% Monta a FT de malha fechada nominal
+G_nom = tf(num_G_nom, [1, a1_nom, a0_nom]);
+L_nom = K_nom * G_nom;
+T_nom = feedback(L_nom, 1);
+
+%% 2. Simulação da Resposta Nominal
+amplitude_degrau = 1.8;
+tempo_final = 5; 
+t_sim = 0:0.01:tempo_final;
+
+[y_nom, t] = step(T_nom, t_sim);
+y_nom = y_nom * amplitude_degrau;
+e_nom = amplitude_degrau - y_nom; % Sinal de erro nominal
+
+%% 3. Geração dos Gráficos em Subplots
+
+% Parâmetros a serem variados
+params_to_vary = {'K', 'num_G', 'a1', 'a0'};
+variation = 0.15; % Variação de +/- 15%
+
+% --- FIGURA 1: SINAIS DE SAÍDA ---
+figure(1);
+sgtitle('Análise de Sensibilidade: Sinal de Saída (y(t))', 'FontSize', 16, 'FontWeight', 'bold');
+
+% --- FIGURA 2: SINAIS DE ERRO ---
+figure(2);
+sgtitle('Análise de Sensibilidade: Sinal de Erro (e(t))', 'FontSize', 16, 'FontWeight', 'bold');
+
+
+% Loop para simular e plotar cada parâmetro
+for i = 1:length(params_to_vary)
+    param_name = params_to_vary{i};
+    
+    % --- Prepara o subplot para o SINAL DE SAÍDA ---
+    figure(1);
+    subplot(2, 2, i);
+    hold on; grid on;
+    plot(t, y_nom, 'k-', 'LineWidth', 2.5, 'DisplayName', 'Nominal');
+    
+    % --- Prepara o subplot para o SINAL DE ERRO ---
+    figure(2);
+    subplot(2, 2, i);
+    hold on; grid on;
+    plot(t, e_nom, 'k-', 'LineWidth', 2.5, 'DisplayName', 'Nominal');
+    
+    % Loop para as variações de +15% e -15%
+    for sign = [-1, 1]
+        K_var = K_nom; num_G_var = num_G_nom; a1_var = a1_nom; a0_var = a0_nom;
+        change_factor = 1 + sign * variation;
+        
+        switch param_name
+            case 'K', K_var = K_nom * change_factor;
+            case 'num_G', num_G_var = num_G_nom * change_factor;
+            case 'a1', a1_var = a1_nom * change_factor;
+            case 'a0', a0_var = a0_nom * change_factor;
+        end
+        
+        G_var = tf(num_G_var, [1, a1_var, a0_var]);
+        T_var = feedback(K_var * G_var, 1);
+        y_var = step(T_var, t_sim) * amplitude_degrau;
+        e_var = amplitude_degrau - y_var;
+        
+        sign_str = sprintf('%+d%%', sign*variation*100);
+        
+        % Plota no subplot de SAÍDA
+        figure(1);
+        plot(t, y_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_name, sign_str));
+        
+        % Plota no subplot de ERRO
+        figure(2);
+        plot(t, e_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_name, sign_str));
+    end
+    
+    % Configurações do subplot de SAÍDA
+    figure(1);
+    title(['Variação em ', strrep(param_name, '_', '\_')]);
+    xlabel('Tempo (segundos)');
+    ylabel('Amplitude de Saída');
+    legend('show', 'Location', 'best');
+    hold off;
+    
+    % Configurações do subplot de ERRO
+    figure(2);
+    title(['Variação em ', strrep(param_name, '_', '\_')]);
+    xlabel('Tempo (segundos)');
+    ylabel('Amplitude do Erro');
+    legend('show', 'Location', 'best');
+    hold off;
+end
