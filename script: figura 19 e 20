@@ -16,7 +16,7 @@ T_nom = feedback(L_nom, 1);
 
 %% 2. Simulação da Resposta Nominal
 amplitude_degrau = 1.8;
-tempo_final = 5; 
+tempo_final = 5; % Tempo focado no transitório
 t_sim = 0:0.01:tempo_final;
 
 [y_nom, t] = step(T_nom, t_sim);
@@ -27,14 +27,18 @@ e_nom = amplitude_degrau - y_nom; % Sinal de erro nominal
 
 % Parâmetros a serem variados
 params_to_vary = {'K', 'num_G', 'a1', 'a0'};
-variation = 0.15; % Variação de +/- 15%
+nominal_values = {K_nom, num_G_nom, a1_nom, a0_nom};
+param_names_str = {'K', 'Ganho Num.', 'Coef. a1', 'Coef. a0'};
+variation = 0.15;
 
 % --- FIGURA 1: SINAIS DE SAÍDA ---
-figure(1);
+fig1 = figure(1);
+fig1.Position = [50, 50, 1000, 700]; % Posição e tamanho da janela
 sgtitle('Análise de Sensibilidade: Sinal de Saída (y(t))', 'FontSize', 16, 'FontWeight', 'bold');
 
 % --- FIGURA 2: SINAIS DE ERRO ---
-figure(2);
+fig2 = figure(2);
+fig2.Position = [100, 100, 1000, 700]; % Posição e tamanho da janela
 sgtitle('Análise de Sensibilidade: Sinal de Erro (e(t))', 'FontSize', 16, 'FontWeight', 'bold');
 
 
@@ -56,45 +60,59 @@ for i = 1:length(params_to_vary)
     
     % Loop para as variações de +15% e -15%
     for sign = [-1, 1]
+        % ... (código de simulação permanece o mesmo) ...
         K_var = K_nom; num_G_var = num_G_nom; a1_var = a1_nom; a0_var = a0_nom;
         change_factor = 1 + sign * variation;
-        
         switch param_name
             case 'K', K_var = K_nom * change_factor;
             case 'num_G', num_G_var = num_G_nom * change_factor;
             case 'a1', a1_var = a1_nom * change_factor;
             case 'a0', a0_var = a0_nom * change_factor;
         end
-        
         G_var = tf(num_G_var, [1, a1_var, a0_var]);
         T_var = feedback(K_var * G_var, 1);
         y_var = step(T_var, t_sim) * amplitude_degrau;
         e_var = amplitude_degrau - y_var;
-        
         sign_str = sprintf('%+d%%', sign*variation*100);
         
-        % Plota no subplot de SAÍDA
-        figure(1);
-        plot(t, y_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_name, sign_str));
-        
-        % Plota no subplot de ERRO
-        figure(2);
-        plot(t, e_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_name, sign_str));
+        figure(1); plot(t, y_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_names_str{i}, sign_str));
+        figure(2); plot(t, e_var, '--', 'LineWidth', 2, 'DisplayName', sprintf('%s %s', param_names_str{i}, sign_str));
     end
     
-    % Configurações do subplot de SAÍDA
-    figure(1);
-    title(['Variação em ', strrep(param_name, '_', '\_')]);
-    xlabel('Tempo (segundos)');
-    ylabel('Amplitude de Saída');
-    legend('show', 'Location', 'best');
-    hold off;
+    % --- ADICIONADO AQUI: Anotações com os valores dos parâmetros ---
+    nominal_val = nominal_values{i};
+    val_minus = nominal_val * (1 - variation);
+    val_plus = nominal_val * (1 + variation);
     
-    % Configurações do subplot de ERRO
+    if nominal_val > 1000 % Formato científico para números grandes
+        format_str = '%.2e';
+    else
+        format_str = '%.3f';
+    end
+    
+    text_info = {
+        sprintf('Nominal: %s = %s', param_names_str{i}, num2str(nominal_val, format_str)),
+        sprintf('-15%%: %s = %s', param_names_str{i}, num2str(val_minus, format_str)),
+        sprintf('+15%%: %s = %s', param_names_str{i}, num2str(val_plus, format_str))
+    };
+    
+    % Adiciona a caixa de texto em cada subplot
+    figure(1);
+    ax1 = subplot(2, 2, i);
+    text(ax1.XLim(2)*0.3, ax1.YLim(2)*0.2, text_info, 'FontSize', 9, 'EdgeColor', 'black');
+    
     figure(2);
-    title(['Variação em ', strrep(param_name, '_', '\_')]);
-    xlabel('Tempo (segundos)');
-    ylabel('Amplitude do Erro');
-    legend('show', 'Location', 'best');
-    hold off;
+    ax2 = subplot(2, 2, i);
+    text(ax2.XLim(2)*0.5, ax2.YLim(2)*0.8, text_info, 'FontSize', 9, 'EdgeColor', 'black');
+
+    % Configurações dos subplots
+    figure(1);
+    title(['Variação em ', param_names_str{i}]);
+    xlabel('Tempo (segundos)'); ylabel('Amplitude de Saída');
+    legend('show', 'Location', 'best'); hold off;
+    
+    figure(2);
+    title(['Variação em ', param_names_str{i}]);
+    xlabel('Tempo (segundos)'); ylabel('Amplitude do Erro');
+    legend('show', 'Location', 'best'); hold off;
 end
